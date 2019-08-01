@@ -1,0 +1,142 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jaxws-resilience4j</artifactId>
+    <groupId>mwiede.github.com</groupId>
+    <version>1.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <properties>
+        <jaxb.generated>${project.build.directory}/generated-sources/jaxb</jaxb.generated>
+        <jaxws.generated.sources>${project.build.directory}/generated-sources/jaxws</jaxws.generated.sources>
+        <jaxws.generated.classes>${project.build.directory}/generated-classes/jaxws</jaxws.generated.classes>
+        <jaxws.generated.resources>${project.build.directory}/generated-resources/jaxws</jaxws.generated.resources>
+        <javadoc.version>3.0.1</javadoc.version>
+        <jaxb2.basics.version>1.11.1</jaxb2.basics.version>
+        <jax.plugin.version>0.1.7</jax.plugin.version>
+        <compiler.plugin.version>3.8.1</compiler.plugin.version>
+    </properties>
+
+    <dependencies>
+        <!-- Java 11 needs these so the generated classes will compile -->
+        <!-- Java 8, 9, 10 don't seem to be bothered by the existence of 
+            these deps -->
+
+        <!-- required to support plugin execution `from-dtd-usePlugins` -->
+        <dependency>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics</artifactId>
+            <version>${jaxb2.basics.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.sun.xml.ws/rt -->
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>rt</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-retry -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-retry</artifactId>
+            <version>0.17.0</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler.plugin.version}</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.davidmoten</groupId>
+                <artifactId>jax-maven-plugin</artifactId>
+                <version>${jax.plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-basics</artifactId>
+                        <version>${jaxb2.basics.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>wsimport</id>
+                        <!-- generate sources from the java.util.logging 
+                            DTD -->
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <!-- These are the arguments you would normally 
+                                    have put with a call to wsimport -->
+                                <argument>-verbose</argument>
+                                <argument>-keep</argument>
+                                <argument>-d</argument>
+                                <argument>${jaxws.generated.classes}</argument>
+                                <argument>-s</argument>
+                                <argument>${jaxws.generated.sources}</argument>
+                                <argument>http://www.learnwebservices.com/services/hello?WSDL</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${jaxws.generated.sources}</source>
+                                <source>${jaxb.generated}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc.version}</version>
+                <configuration>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+
+    </build>
+</project>
